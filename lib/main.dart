@@ -1,8 +1,7 @@
-
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter_application_1/infracture/models/departamento.dart';
-
 
 void main() => runApp(const MyApp());
 
@@ -14,33 +13,29 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-      List<Departamento>departamentos=[];
+  List<Departamento> departamentos = [];
 
- @override
-  void initState(){
+  @override
+  void initState() {
     super.initState();
     getDepartamentos();
   }
 
-  Future<void> getDepartamentos() async{
+  Future<void> getDepartamentos() async {
+    final response = await Dio().get('https://www.datos.gov.co/resource/ya3g-4kqg.json');
+    if (response.statusCode == 200) {
+      final jsonData = response.data;
+      final jsonString = json.encode(jsonData);
+      List<Departamento> departamentolist = departamentoFromJson(jsonString);
 
-    try{
-  final response= await Dio().get('https://www.datos.gov.co/resource/ya3g-4kqg.json');
-  if(response.statusCode==200){
-    List<Departamento> departamentolist= departamentoFromJson(response.data);
-
-    setState(() {
-      departamentos= departamentolist;
-    });
-  }else{
-    print("Error en la solicitud: ${response.statusCode}");
-  }
-
-    }catch(e){
-      print("Error de red: $e");
-
+      setState(() {
+        departamentos = departamentolist;
+      });
+    } else {
+      print("Error en la solicitud: ${response.statusCode}");
     }
   }
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -49,22 +44,23 @@ class _MyAppState extends State<MyApp> {
         appBar: AppBar(
           title: const Text('Material App Bar'),
         ),
-        body: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              for( var departamento in departamentos)
-              Column(
-                children: [
-                  Text(departamento.iddepto),
-                  Text(departamento.nomdepto),
-                  Text(departamento.deptolatitud),
-                  Text(departamento.deptolongitud),
-                  const Divider()
-
-                ],
-              )
-            ],
+        body: SingleChildScrollView(
+          child: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                for (var departamento in departamentos)
+                  Column(
+                    children: [
+                      Text(departamento.iddepto),
+                      Text(departamento.nomdepto),
+                      Text(departamento.deptolatitud),
+                      Text(departamento.deptolongitud),
+                      const Divider(),
+                    ],
+                  )
+              ],
+            ),
           ),
         ),
       ),
